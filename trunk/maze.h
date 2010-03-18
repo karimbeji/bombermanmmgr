@@ -5,7 +5,7 @@ enum tile_e {
 	SOFTWALL, 	// Mur destructible.
 	BOMB,		// Bombe.
 	BONUS, 		// Bonus.
-	EXPLOSION,	// Explosion.
+	EXPLOSION	// Explosion.
 };
 
 // Définit le type d'une case du plateau de jeu.
