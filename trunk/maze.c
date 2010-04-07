@@ -42,14 +42,16 @@ maze_t * loadMaze (char *filename)
 			{
 				default:
 				case '.':
-					maze->t[j * maze->h + i].type = EMPTY;
+					maze->t[j * maze->h + i].type = T_EMPTY;
 					break;
 				case '+':
-					maze->t[j * maze->h + i].type = SOFTWALL;
+					maze->t[j * maze->h + i].type = T_SOFTWALL;
 					break;
 				case '#':
-					maze->t[j * maze->h + i].type = HARDWALL;
+					maze->t[j * maze->h + i].type = T_HARDWALL;
 					break;
+				case '@':
+					maze->t[j * maze->h + i].type = T_PLAYER;
 			}
 		}
 	}

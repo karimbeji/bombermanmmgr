@@ -27,6 +27,7 @@ enum tile_number {
 
 // Les images des différentes tuiles possibles du jeu.
 SDL_Surface * tile[MAX_TILE_NUMBER];
+
 const char * tilenames[]= {
 	NULL, // Pas d'image quand la case est vide.
 	"data/hardwall.bmp",
@@ -52,20 +53,50 @@ void loadTiles ()
 }
 
 // Affiche tout le plateau de jeu. A COMPLETER.
-void paint (maze_t * m)
+void paint (maze_t * maze)
 {
+	int nbPlayer, w, h;
 	SDL_Rect rect;
 	rect.w = SIZE;
 	rect.h = SIZE;
 
+	nbPlayer = 0;
+
 	// Efface l'écran en le mettant tout noir.
 	SDL_FillRect (screen, NULL, SDL_MapRGB (screen->format, 0, 0, 0));
+	
+	for (w = 0; w < maze->w; w++)
+	{
+		for (h = 0; h < maze->h; h++)
+		{
+			rect.x = SIZE * w;
+			rect.y = SIZE * h;
+
+			switch (maze->t[w * maze->h + h].type)
+			{
+				default:
+				case T_EMPTY:
+					SDL_BlitSurface(tile[EMPTY], NULL, screen, &rect);
+					break;
+				case T_HARDWALL:
+					SDL_BlitSurface(tile[HARDWALL], NULL, screen, &rect);
+					break;
+				case T_SOFTWALL:
+					SDL_BlitSurface(tile[SOFTWALL], NULL, screen, &rect);
+					break;
+				case T_PLAYER:
+					nbPlayer++;
+					SDL_BlitSurface(tile[PLAYER + nbPlayer], NULL, screen, &rect);
+					break;
+			}
+		}
+	}
 
 	// Affiche les tuiles du plateau de jeu.
 	// A REMPLIR.
 	// Les images des tuiles sont à afficher avec:
-	SDL_SetColorKey (tile[...], SDL_SRCCOLORKEY, SDL_MapRGB (screen->format, 0, 0, 0));
-	SDL_BlitSurface(tile[...], NULL, screen, &rect);
+//	SDL_SetColorKey (tile[0], SDL_SRCCOLORKEY, SDL_MapRGB (screen->format, 0, 0, 0));
+//	SDL_BlitSurface(tile[0], NULL, screen, &rect);
 
 	// Met a jour la fenetre.
 	SDL_Flip(screen);
