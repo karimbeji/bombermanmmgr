@@ -15,7 +15,9 @@ int main (int argc, char * argv[])
 
 	while (!finished)
 	{
-		finished = getEvent ();
+		finished = getEvent (maze);	// Récupération des évènements.
+		updatePaint(maze);			// Déplacement des joueurs.
+		SDL_Delay (150);			// Ralentissmeent.
 		paint (maze);				// Mise à jour des cases.
 	}
 	
