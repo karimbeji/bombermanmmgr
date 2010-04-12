@@ -6,10 +6,10 @@
 maze_t correspondant au plateau de jeu. Le fichier doit
 correspondre au format donné par l'énoncé.
 Si le fichier ne peut pas être lu, retourne NULL. */
-maze_t * loadMaze (char *filename)
+maze_t * loadMaze (char * filename)
 {
 	char buffer[1024];
-	int i,j;
+	int i, j, nbPlayer;
 	maze_t * maze;
 
 	// Ouvre le fichier en lecture.
@@ -22,6 +22,8 @@ maze_t * loadMaze (char *filename)
 
 	// Alloue de l'espace pour le plateau de jeu.
 	maze = (maze_t *) malloc (sizeof (maze_t));
+	// Alloue de l'espace pour le tableau de joueur.
+	arrayPlayer = malloc(sizeof(player_t) * 4);
 
 	// Lit les dimensions du plateau de jeu. w correspond au nombre de colonnes, h au nombre de lignes.
 	fscanf (f, "%d %d\n", &maze->w, &maze->h);
@@ -31,7 +33,7 @@ maze_t * loadMaze (char *filename)
 	maze->t = (tile_t *) malloc (sizeof (tile_t) * maze->w * maze->h);
 	
 	// Lit le fichier ligne par ligne et construit les tuiles du plateau.
-	for (i = 0; i < maze->h; i++)
+	for (i = 0, nbPlayer = 0; i < maze->h; i++)
 	{
 		// Lit une ligne.
 		fgets (buffer, 1024, f);
@@ -42,16 +44,28 @@ maze_t * loadMaze (char *filename)
 			{
 				default:
 				case '.':
-					maze->t[j * maze->h + i].type = T_EMPTY;
+					maze->t[i * maze->h + j].type = T_EMPTY;
 					break;
 				case '+':
-					maze->t[j * maze->h + i].type = T_SOFTWALL;
+					maze->t[i * maze->h + j].type = T_SOFTWALL;
 					break;
 				case '#':
-					maze->t[j * maze->h + i].type = T_HARDWALL;
+					maze->t[i * maze->h + j].type = T_HARDWALL;
 					break;
 				case '@':
-					maze->t[j * maze->h + i].type = T_PLAYER;
+					maze->t[i * maze->h + j].type = T_EMPTY;
+					
+					if (nbPlayer < 4)
+					{
+						arrayPlayer[nbPlayer].powerBomb = 1; 			// Puissance des bombe par défaut.
+						arrayPlayer[nbPlayer].direction = STOP; 		// Direction du joueur.
+						arrayPlayer[nbPlayer].x = j; 					// Affectation des coordonnés.
+						arrayPlayer[nbPlayer].y = i; 					// Affectation des coordonnés.
+						
+						nbPlayer++;
+					}
+
+					break;
 			}
 		}
 	}
@@ -66,4 +80,34 @@ void unloadMaze (maze_t * maze)
 {
 	free (maze->t);
 	free (maze);
+}
+
+// Vérifie si un joueur n'est pas sur la case suivante.
+int checkOtherPlayer(int numPlayer, enum direction_e dir)
+{
+	int i, j;
+	j = 0;
+	
+	for (i = 0; i < 4; i++) // Pour tous les joueurs.
+	{
+		if (i != numPlayer)
+			switch (dir)
+			{
+				case TOP:
+					j = (arrayPlayer[i].y == (arrayPlayer[numPlayer].y - 1) && arrayPlayer[i].x == arrayPlayer[numPlayer].x) ? j + 1 : j;
+					break;
+				case BOTTOM:
+					j = (arrayPlayer[i].y == (arrayPlayer[numPlayer].y + 1) && arrayPlayer[i].x == arrayPlayer[numPlayer].x) ? j + 1 : j;
+					break;
+				case LEFT:
+					j = (arrayPlayer[i].y == arrayPlayer[numPlayer].y && arrayPlayer[i].x == (arrayPlayer[numPlayer].x - 1)) ? j + 1 : j;
+					break;
+				case RIGHT:
+					j = (arrayPlayer[i].y == arrayPlayer[numPlayer].y && arrayPlayer[i].x == (arrayPlayer[numPlayer].x + 1)) ? j + 1 : j;
+					break;
+				default: ;
+			}
+	}
+
+	return j;
 }
