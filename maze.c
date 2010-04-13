@@ -68,11 +68,12 @@ maze_t * loadMaze (char * filename)
 					
 					if (nbPlayer < 4)
 					{
+						arrayPlayer[nbPlayer].alive = 1;				// Si le joueur est vivant.
 						arrayPlayer[nbPlayer].powerBomb = 1; 			// Puissance des bombe par défaut.
 						arrayPlayer[nbPlayer].direction = STOP; 		// Direction du joueur.
 						arrayPlayer[nbPlayer].x = j; 					// Affectation des coordonnés.
 						arrayPlayer[nbPlayer].y = i; 					// Affectation des coordonnés.
-						
+
 						nbPlayer++;
 					}
 					break;
@@ -100,7 +101,7 @@ int checkOtherPlayer(int numPlayer, enum direction_e dir)
 	
 	for (i = 0; i < 4; i++) // Pour tous les joueurs.
 	{
-		if (i != numPlayer)
+		if (i != numPlayer && arrayPlayer[i].alive == 1)
 			switch (dir)
 			{
 				case TOP:
@@ -135,4 +136,33 @@ int checkTileOK (enum tile_e nextCase)
 int generateBonus (int lucky)
 {
 	return (rand() % lucky);
+}
+
+// Permet d'imprimer sur la sortie un peu de texte...
+void updateOutput (int player, int alive, int power)
+{
+	if (alive == 0)
+	{
+		printf("Le joueur %d vient de mourir avec une puissance de %d !\n", player, power);
+	}
+	else if (power > 0)
+	{
+		printf("Le joueur %d vient d'augmenter sa puissance a %d !\n", player, power);
+	}
+}
+
+// Permet de connaître le nom du vainqueur.
+int lastPlayer ()
+{
+	int i, nbPlayerAlive;
+	
+	for (i = 0, nbPlayerAlive = 0; i < 4; i++)
+	{
+		if (arrayPlayer[i].alive == 1)
+		{
+			nbPlayerAlive++;
+		}
+	}
+	
+	return nbPlayerAlive;
 }
