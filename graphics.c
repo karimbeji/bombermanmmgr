@@ -1,6 +1,7 @@
 #include <SDL.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
 #include "maze.h"
 #include "graphics.h"
 
@@ -19,6 +20,7 @@ enum tile_number {
 	PLAYER2,
 	PLAYER3,
 	PLAYER4,
+	DEAD,
 	MAX_TILE_NUMBER
 };
 
@@ -40,7 +42,8 @@ const char * tilenames[]= {
 	"data/player1.bmp",
 	"data/player2.bmp",
 	"data/player3.bmp",
-	"data/player4.bmp"
+	"data/player4.bmp",
+	"data/dead.bmp"
 };
 
 // Nom des joueurs.
@@ -64,7 +67,7 @@ void loadTiles ()
 	}
 }
 
-// Affiche tout le plateau de jeu. A COMPLETER.
+// Affiche tout le plateau de jeu.
 void paint (maze_t * maze)
 {
 	int nbPlayer, w, h, z;
@@ -102,6 +105,9 @@ void paint (maze_t * maze)
 				case T_EXPLOSION:
 					SDL_BlitSurface(tile[FIRE], NULL, screen, &rect);
 					break;
+				case T_BONUS:
+					SDL_BlitSurface(tile[POWER], NULL, screen, &rect);
+					break;
 			}
 		}
 	}
@@ -113,19 +119,11 @@ void paint (maze_t * maze)
 		SDL_BlitSurface(tile[PLAYER1 + z], NULL, screen, &rect);
 	}
 
-	// Affiche les tuiles du plateau de jeu.
-	// A REMPLIR.
-	// Les images des tuiles sont à afficher avec:
-//	SDL_SetColorKey (tile[0], SDL_SRCCOLORKEY, SDL_MapRGB (screen->format, 0, 0, 0));
-//	SDL_BlitSurface(tile[0], NULL, screen, &rect);
-
 	// Met a jour la fenetre.
 	SDL_Flip(screen);
 }
 
 // Capture les evenements clavier/fenetre.
-// Retourne 1 si il faut quitter le jeu, 0 sinon.*/
-// A REMPLIR.
 int getEvent (maze_t * maze)
 {
 	SDL_Event event;
@@ -185,70 +183,183 @@ int getEvent (maze_t * maze)
 	return 0;
 }
 
-void updatePaint (maze_t * maze)
+// Met à jour la position du joueur.
+void updatePlayer (maze_t * maze, int stepByStep)
 {
-	int numPlayer, currentPlace, varPlace; // Variable de boucle.
+	int player, currentPlace; // Variable de boucle (joueur courant), case courante du joueur.
 	enum tile_e nextCaseTop, nextCaseBottom, nextCaseLeft, nextCaseRight; // Variable de la prochaine case.
 
-	for (numPlayer = 0; numPlayer < 4; numPlayer++) // Gestion des déplacements des joueurs.
+	for (player = 0; player < 4; player++) // Gestion des déplacements des joueurs.
 	{
-		currentPlace = (arrayPlayer[numPlayer].y * maze->w + arrayPlayer[numPlayer].x);
-		nextCaseTop = arrayPlayer[numPlayer].y > 0 ? maze->t[(currentPlace - maze->w)].type : T_HARDWALL;
-		nextCaseBottom = arrayPlayer[numPlayer].y < (maze->h - 1) ? maze->t[(currentPlace + maze->w)].type : T_HARDWALL;
-		nextCaseLeft = arrayPlayer[numPlayer].x > 0 ? maze->t[(currentPlace - 1)].type : T_HARDWALL;
-		nextCaseRight = arrayPlayer[numPlayer].x < (maze->w - 1) ? maze->t[(currentPlace + 1)].type : T_HARDWALL;
+		currentPlace = (arrayPlayer[player].y * maze->w + arrayPlayer[player].x);
+		nextCaseTop = arrayPlayer[player].y > 0 ? maze->t[(currentPlace - maze->w)].type : T_HARDWALL;
+		nextCaseBottom = arrayPlayer[player].y < (maze->h - 1) ? maze->t[(currentPlace + maze->w)].type : T_HARDWALL;
+		nextCaseLeft = arrayPlayer[player].x > 0 ? maze->t[(currentPlace - 1)].type : T_HARDWALL;
+		nextCaseRight = arrayPlayer[player].x < (maze->w - 1) ? maze->t[(currentPlace + 1)].type : T_HARDWALL;
 
-		switch (arrayPlayer[numPlayer].direction)
+		switch (arrayPlayer[player].direction)
 		{
 			// Déplacement vers le haut.
 			case TOP:
 				// On vérifie la limite de la map, les obstacles et les joueurs de la case suivante.
-				if ((nextCaseTop == T_EMPTY || nextCaseTop == T_BONUS) && checkOtherPlayer(numPlayer, TOP) == 0)
-					arrayPlayer[numPlayer].y -= 1;
+				if (checkTileOK(nextCaseTop) == 0 && checkOtherPlayer(player, TOP) == 0)
+					arrayPlayer[player].y -= 1;
 				else
-					arrayPlayer[numPlayer].direction = STOP;
-				break;
-			// Déplacement vers le bas.
-			case BOTTOM:
-				// On vérifie la limite de la map, les obstacles et les joueurs de la case suivante.
-				if ((nextCaseBottom == T_EMPTY || nextCaseBottom == T_BONUS) && checkOtherPlayer(numPlayer, BOTTOM) == 0)
-					arrayPlayer[numPlayer].y += 1;
-				else
-					arrayPlayer[numPlayer].direction = STOP;
-				break;
-			// Déplacement vers le gauche.
-			case LEFT:
-				// On vérifie la limite de la map, les obstacles et les joueurs de la case suivante.
-				if ((nextCaseLeft == T_EMPTY || nextCaseLeft == T_BONUS) && checkOtherPlayer(numPlayer, LEFT) == 0)
-					arrayPlayer[numPlayer].x -= 1;
-				else
-					arrayPlayer[numPlayer].direction = STOP;
+					arrayPlayer[player].direction = STOP;
 				break;
 			// Déplacement vers le droite.
 			case RIGHT:
 				// On vérifie la limite de la map, les obstacles et les joueurs de la case suivante.
-				if ((nextCaseRight == T_EMPTY || nextCaseRight == T_BONUS) && checkOtherPlayer(numPlayer, RIGHT) == 0)
-					arrayPlayer[numPlayer].x += 1;
+				if (checkTileOK(nextCaseRight) == 0 && checkOtherPlayer(player, RIGHT) == 0)
+					arrayPlayer[player].x += 1;
 				else
-					arrayPlayer[numPlayer].direction = STOP;
+					arrayPlayer[player].direction = STOP;
+				break;
+			// Déplacement vers le bas.
+			case BOTTOM:
+				// On vérifie la limite de la map, les obstacles et les joueurs de la case suivante.
+				if (checkTileOK(nextCaseBottom) == 0 && checkOtherPlayer(player, BOTTOM) == 0)
+					arrayPlayer[player].y += 1;
+				else
+					arrayPlayer[player].direction = STOP;
+				break;
+			// Déplacement vers le gauche.
+			case LEFT:
+				// On vérifie la limite de la map, les obstacles et les joueurs de la case suivante.
+				if (checkTileOK(nextCaseLeft) == 0 && checkOtherPlayer(player, LEFT) == 0)
+					arrayPlayer[player].x -= 1;
+				else
+					arrayPlayer[player].direction = STOP;
 				break;
 			default: ;
 		}
-	}
-	
-	for (varPlace = 0; varPlace < (maze->w * maze->h); varPlace++)
-	{
-		if (maze->t[varPlace].type == T_BOMB)
-			if (maze->t[varPlace].timer == 0)
-				maze->t[varPlace].type = T_EXPLOSION;
-			else
-				maze->t[varPlace].timer--;
-		else if (maze->t[varPlace].type == T_EXPLOSION)
-			maze->t[varPlace].type = T_EMPTY;
+		
+		if (stepByStep == 1)
+			arrayPlayer[player].direction = STOP;
 	}
 }
 
-// Ouvre une fenêtre avec de taille wxh tuiles de plateau de jeu.. 
+// Met à jour les bombes et les explosions.
+void updateBomb (maze_t * maze)
+{
+	int varPlace; // Variable de boucle (case courante).
+
+	for (varPlace = 0; varPlace < (maze->w * maze->h); varPlace++) // Boucle pour les bombes.
+	{
+		if (maze->t[varPlace].type == T_BOMB)
+		{
+			if (maze->t[varPlace].timer == 0)
+			{
+				explosion (maze, varPlace);
+			}
+			else
+			{
+				maze->t[varPlace].timer -= 1;
+			}
+		}
+	}
+
+	for (varPlace = 0; varPlace < (maze->w * maze->h); varPlace++) // Boucle pour les explosions.
+	{
+		if (maze->t[varPlace].type == T_EXPLOSION)
+		{
+			if (maze->t[varPlace].timer == 1)
+			{
+				if (maze->t[varPlace].bonus == 1)
+				{
+					maze->t[varPlace].type = T_BONUS;
+				}
+				else
+				{
+					maze->t[varPlace].type = T_EMPTY;
+				}
+			}
+			else
+			{
+				maze->t[varPlace].timer += 1;
+			}
+		}
+	}	
+
+	/* Obligation : Je suis obligé de faire 2 boucles sinon j'ai un décalage dans les explosions et je n'arriva pas à trouver une meilleure solution algorithmique pour résoudre ce dernier !!! */
+}
+
+// Explosion d'une bombe.
+void explosion (maze_t * maze, int numTile)
+{
+	int arrayStop[4], i; // Tableau stopant l'explosion pour un mur indestructible, varaible de boucle.
+	
+	// Initialisation du tableau qui permettra de connaître les limites de l'explosion.
+	arrayStop[0] = arrayStop[1] = arrayStop[2] = arrayStop[3] = 0;
+
+	// Explosion de la case contenant la bombe.
+	maze->t[numTile].type = T_EXPLOSION;
+
+	for (i = 1; i <= maze->t[numTile].power; i++) // En fonction de la puissance du joueur.
+	{		
+		// Top
+		if ((maze->w * i) <= numTile && arrayStop[0] == 0)
+		{
+			switch (maze->t[numTile - maze->w * i].type)
+			{
+				case T_HARDWALL:
+					arrayStop[0] = 1;
+					break;
+				default:
+					maze->t[numTile - maze->w * i].type = T_EXPLOSION;
+					maze->t[numTile - maze->w * i].timer = 0;
+					break;
+			}
+		}
+		
+		// Right
+		if ((numTile % maze->w) < (maze->w - i) && arrayStop[1] == 0)
+		{
+			switch (maze->t[numTile + i].type)
+			{
+				case T_HARDWALL:
+					arrayStop[1] = 1;
+					break;
+				default:
+					maze->t[numTile + i].type = T_EXPLOSION;
+					maze->t[numTile + i].timer = 0;
+					break;
+			}
+		}
+		
+		// Bottom
+		if (numTile < (maze->w * (maze->h - i)) && arrayStop[2] == 0)
+		{
+			switch (maze->t[numTile + maze->w * i].type)
+			{
+				case T_HARDWALL:
+					arrayStop[2] = 1;
+					break;
+				default:
+					maze->t[numTile + maze->w * i].type = T_EXPLOSION;
+					maze->t[numTile + maze->w * i].timer = 0;
+					break;
+			}
+		}
+		
+		// Left
+		if (i <= (numTile % maze->w) && arrayStop[3] == 0)
+		{
+			switch (maze->t[numTile - i].type)
+			{
+				case T_HARDWALL:
+					arrayStop[3] = 1;
+					break;
+				default:
+					maze->t[numTile - i].type = T_EXPLOSION;
+					maze->t[numTile - i].timer = 0;
+					break;
+			}
+		}
+	}
+}
+
+// Ouvre une fenêtre avec de taille wxh tuiles de plateau de jeu.
 void initWindow (int w, int h)
 {
 	if (SDL_Init (SDL_INIT_VIDEO) == -1)
