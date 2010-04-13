@@ -33,25 +33,17 @@ enum tile_number {
 SDL_Surface * tile[MAX_TILE_NUMBER];
 
 const char * tilenames[]= {
-	NULL, // Pas d'image quand la case est vide.
-	"data/hardwall.bmp",
-	"data/softwall.bmp",
-	"data/bomb.bmp",
-	"data/power.bmp",
-	"data/fire.bmp",
-	"data/player1.bmp",
-	"data/player2.bmp",
-	"data/player3.bmp",
-	"data/player4.bmp",
-	"data/dead.bmp"
-};
-
-// Nom des joueurs.
-const char * namesPlayer[] = {
-	"duBoursin",
-	"yChieDur",
-	"yChieMou",
-	"prendDuLaxatif"
+        NULL, // Pas d'image quand la case est vide.
+        "data/hardwall.bmp",
+        "data/softwall.bmp",
+        "data/bomb.bmp",
+        "data/power.bmp",
+        "data/fire.bmp",
+        "data/player1.bmp",
+        "data/player2.bmp",
+        "data/player3.bmp",
+        "data/player4.bmp",
+        "data/dead.bmp"
 };
 
 player_t joueur[4];
@@ -112,11 +104,28 @@ void paint (maze_t * maze)
 		}
 	}
 	
+	// Affichage des morts !
 	for (z = 0; z < 4; z++)
 	{
 		rect.x = SIZE * arrayPlayer[z].x;
 		rect.y = SIZE * arrayPlayer[z].y;
-		SDL_BlitSurface(tile[PLAYER1 + z], NULL, screen, &rect);
+		
+		if (arrayPlayer[z].alive == 0)
+		{
+			SDL_BlitSurface(tile[DEAD], NULL, screen, &rect);
+		}
+	}
+	
+	// Affichage des vivants.
+	for (z = 0; z < 4; z++)
+	{
+		rect.x = SIZE * arrayPlayer[z].x;
+		rect.y = SIZE * arrayPlayer[z].y;
+		
+		if (arrayPlayer[z].alive == 1)
+		{
+			SDL_BlitSurface(tile[PLAYER1 + z], NULL, screen, &rect);
+		}
 	}
 
 	// Met a jour la fenetre.
@@ -147,21 +156,32 @@ int getEvent (maze_t * maze)
 					return 1;
 					break;
 				case SDLK_SPACE:
-					maze->t[arrayPlayer[3].y * maze->w + arrayPlayer[3].x].type = T_BOMB;
-					maze->t[arrayPlayer[3].y * maze->w + arrayPlayer[3].x].power = arrayPlayer[3].powerBomb;
-					maze->t[arrayPlayer[3].y * maze->w + arrayPlayer[3].x].timer = TIMER_BOMB;
+					if (arrayPlayer[0].alive == 1)
+					{
+						maze->t[arrayPlayer[0].y * maze->w + arrayPlayer[0].x].type = T_BOMB;
+						maze->t[arrayPlayer[0].y * maze->w + arrayPlayer[0].x].power = arrayPlayer[0].powerBomb;
+						maze->t[arrayPlayer[0].y * maze->w + arrayPlayer[0].x].timer = TIMER_BOMB;
+					}
 					break;
 				case SDLK_LEFT:
-					arrayPlayer[3].direction = LEFT;
+					arrayPlayer[0].direction = LEFT;
 					break;
 				case SDLK_RIGHT:
-					arrayPlayer[3].direction = RIGHT;
+					arrayPlayer[0].direction = RIGHT;
 					break;
 				case SDLK_UP:
-					arrayPlayer[3].direction = TOP;
+					arrayPlayer[0].direction = TOP;
 					break;
 				case SDLK_DOWN:
-					arrayPlayer[3].direction = BOTTOM;
+					arrayPlayer[0].direction = BOTTOM;
+					break;
+				case SDLK_a:
+					if (arrayPlayer[1].alive == 1)
+					{
+						maze->t[arrayPlayer[1].y * maze->w + arrayPlayer[1].x].type = T_BOMB;
+						maze->t[arrayPlayer[1].y * maze->w + arrayPlayer[1].x].power = arrayPlayer[1].powerBomb;
+						maze->t[arrayPlayer[1].y * maze->w + arrayPlayer[1].x].timer = TIMER_BOMB;
+					}
 					break;
 				case SDLK_q:
 					arrayPlayer[1].direction = LEFT;
@@ -186,56 +206,78 @@ int getEvent (maze_t * maze)
 // Met à jour la position du joueur.
 void updatePlayer (maze_t * maze, int stepByStep)
 {
-	int player, currentPlace; // Variable de boucle (joueur courant), case courante du joueur.
+	int player, currentPlace, nextPlace; // Variable de boucle (joueur courant), case courante du joueur.
 	enum tile_e nextCaseTop, nextCaseBottom, nextCaseLeft, nextCaseRight; // Variable de la prochaine case.
 
 	for (player = 0; player < 4; player++) // Gestion des déplacements des joueurs.
 	{
-		currentPlace = (arrayPlayer[player].y * maze->w + arrayPlayer[player].x);
-		nextCaseTop = arrayPlayer[player].y > 0 ? maze->t[(currentPlace - maze->w)].type : T_HARDWALL;
-		nextCaseBottom = arrayPlayer[player].y < (maze->h - 1) ? maze->t[(currentPlace + maze->w)].type : T_HARDWALL;
-		nextCaseLeft = arrayPlayer[player].x > 0 ? maze->t[(currentPlace - 1)].type : T_HARDWALL;
-		nextCaseRight = arrayPlayer[player].x < (maze->w - 1) ? maze->t[(currentPlace + 1)].type : T_HARDWALL;
-
-		switch (arrayPlayer[player].direction)
+		if (arrayPlayer[player].alive == 1)
 		{
-			// Déplacement vers le haut.
-			case TOP:
-				// On vérifie la limite de la map, les obstacles et les joueurs de la case suivante.
-				if (checkTileOK(nextCaseTop) == 0 && checkOtherPlayer(player, TOP) == 0)
-					arrayPlayer[player].y -= 1;
-				else
-					arrayPlayer[player].direction = STOP;
-				break;
-			// Déplacement vers le droite.
-			case RIGHT:
-				// On vérifie la limite de la map, les obstacles et les joueurs de la case suivante.
-				if (checkTileOK(nextCaseRight) == 0 && checkOtherPlayer(player, RIGHT) == 0)
-					arrayPlayer[player].x += 1;
-				else
-					arrayPlayer[player].direction = STOP;
-				break;
-			// Déplacement vers le bas.
-			case BOTTOM:
-				// On vérifie la limite de la map, les obstacles et les joueurs de la case suivante.
-				if (checkTileOK(nextCaseBottom) == 0 && checkOtherPlayer(player, BOTTOM) == 0)
-					arrayPlayer[player].y += 1;
-				else
-					arrayPlayer[player].direction = STOP;
-				break;
-			// Déplacement vers le gauche.
-			case LEFT:
-				// On vérifie la limite de la map, les obstacles et les joueurs de la case suivante.
-				if (checkTileOK(nextCaseLeft) == 0 && checkOtherPlayer(player, LEFT) == 0)
-					arrayPlayer[player].x -= 1;
-				else
-					arrayPlayer[player].direction = STOP;
-				break;
-			default: ;
-		}
+			currentPlace = (arrayPlayer[player].y * maze->w + arrayPlayer[player].x);
+			nextCaseTop = arrayPlayer[player].y > 0 ? maze->t[(currentPlace - maze->w)].type : T_HARDWALL;
+			nextCaseBottom = arrayPlayer[player].y < (maze->h - 1) ? maze->t[(currentPlace + maze->w)].type : T_HARDWALL;
+			nextCaseLeft = arrayPlayer[player].x > 0 ? maze->t[(currentPlace - 1)].type : T_HARDWALL;
+			nextCaseRight = arrayPlayer[player].x < (maze->w - 1) ? maze->t[(currentPlace + 1)].type : T_HARDWALL;
+
+			switch (arrayPlayer[player].direction)
+			{
+				// Déplacement vers le haut.
+				case TOP:
+					// On vérifie la limite de la map, les obstacles et les joueurs de la case suivante.
+					if (checkTileOK(nextCaseTop) == 0 && checkOtherPlayer(player, TOP) == 0)
+						arrayPlayer[player].y -= 1;
+					else
+						arrayPlayer[player].direction = STOP;
+					break;
+				// Déplacement vers le droite.
+				case RIGHT:
+					// On vérifie la limite de la map, les obstacles et les joueurs de la case suivante.
+					if (checkTileOK(nextCaseRight) == 0 && checkOtherPlayer(player, RIGHT) == 0)
+						arrayPlayer[player].x += 1;
+					else
+						arrayPlayer[player].direction = STOP;
+					break;
+				// Déplacement vers le bas.
+				case BOTTOM:
+					// On vérifie la limite de la map, les obstacles et les joueurs de la case suivante.
+					if (checkTileOK(nextCaseBottom) == 0 && checkOtherPlayer(player, BOTTOM) == 0)
+						arrayPlayer[player].y += 1;
+					else
+						arrayPlayer[player].direction = STOP;
+					break;
+				// Déplacement vers le gauche.
+				case LEFT:
+					// On vérifie la limite de la map, les obstacles et les joueurs de la case suivante.
+					if (checkTileOK(nextCaseLeft) == 0 && checkOtherPlayer(player, LEFT) == 0)
+						arrayPlayer[player].x -= 1;
+					else
+						arrayPlayer[player].direction = STOP;
+					break;
+				default: ;
+			}
 		
-		if (stepByStep == 1)
-			arrayPlayer[player].direction = STOP;
+			// Mise à jour de la position du joueur.
+			nextPlace = (arrayPlayer[player].y * maze->w + arrayPlayer[player].x);
+		
+			if (maze->t[nextPlace].type == T_EXPLOSION) // Permet de tuer un joueur.
+			{
+				arrayPlayer[player].alive = 0;
+
+				updateOutput (player, 0, arrayPlayer[player].powerBomb);
+			}
+			else if (maze->t[nextPlace].type == T_BONUS) // permet de ramasser des bonus.
+			{
+				arrayPlayer[player].powerBomb += 1;
+				maze->t[nextPlace].type = T_EMPTY;
+
+				updateOutput (player, 1, arrayPlayer[player].powerBomb);
+			}
+		
+			if (stepByStep == 1) // Permet de faire du pas à pas.
+			{
+				arrayPlayer[player].direction = STOP;
+			}
+		}
 	}
 }
 
@@ -268,6 +310,7 @@ void updateBomb (maze_t * maze)
 				if (maze->t[varPlace].bonus == 1)
 				{
 					maze->t[varPlace].type = T_BONUS;
+					maze->t[varPlace].bonus = 0;
 				}
 				else
 				{

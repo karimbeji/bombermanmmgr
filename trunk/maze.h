@@ -31,6 +31,7 @@ enum direction_e {
 };
 
 typedef struct {
+	int alive;					// Indique si le joueur est vivant !
 	int powerBomb; 				// Puissance des bombes.
 	enum direction_e direction; // Direction de déplacement.
 	int x;						// Position horizontal sur le plateau.
@@ -56,3 +57,9 @@ int checkTileOK (enum tile_e nextCase);
 
 // Génération aléatoire des bombes sous les murs destructibles...
 int generateBonus (int lucky);
+
+// Permet d'imprimer sur la sortie un peu de texte...
+void updateOutput (int player, int alive, int power);
+
+// Permet de connaître le nom du vainqueur.
+int lastPlayer ();
