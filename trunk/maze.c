@@ -9,7 +9,7 @@ Si le fichier ne peut pas être lu, retourne NULL. */
 maze_t * loadMaze (char * filename)
 {
 	char buffer[1024];
-	int i, j, nbPlayer;
+	int i, j, nbPlayer, bonus;
 	maze_t * maze;
 
 	// Ouvre le fichier en lecture.
@@ -40,6 +40,12 @@ maze_t * loadMaze (char * filename)
 		// Buffer est un tableau de caractère. Pour chaque caractère, construit les tuiles.
 		for (j = 0; j < maze->w; j++)
 		{
+			// Par défaut.
+			maze->t[i * maze->h + j].bonus = 0;
+
+			// Génération du bonus.
+			bonus = generateBonus (3); // 33% de chance d'avoir un bonus...
+
 			switch (buffer[j])
 			{
 				default:
@@ -48,6 +54,11 @@ maze_t * loadMaze (char * filename)
 					break;
 				case '+':
 					maze->t[i * maze->h + j].type = T_SOFTWALL;
+					
+					if (bonus == 0) // On génèreles bonus.
+					{
+						maze->t[i * maze->h + j].bonus = 1;
+					}
 					break;
 				case '#':
 					maze->t[i * maze->h + j].type = T_HARDWALL;
@@ -64,7 +75,6 @@ maze_t * loadMaze (char * filename)
 						
 						nbPlayer++;
 					}
-
 					break;
 			}
 		}
@@ -110,4 +120,19 @@ int checkOtherPlayer(int numPlayer, enum direction_e dir)
 	}
 
 	return j;
+}
+
+// Vérifie si le type de la case convient à un déplacement.
+int checkTileOK (enum tile_e nextCase)
+{
+	if (nextCase == T_EMPTY || nextCase == T_BONUS || nextCase == T_EXPLOSION)
+		return 0;
+	else
+		return 1;
+}
+
+// Génération aléatoire des bombes sous les murs destructibles...
+int generateBonus (int lucky)
+{
+	return (rand() % lucky);
 }

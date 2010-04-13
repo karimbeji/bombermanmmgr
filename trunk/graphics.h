@@ -1,11 +1,20 @@
-// Charge les images des tuiles pouvant décrire le plateau de jeu.
+// Charge les différentes images du jeu...
 void loadTiles ();
-// Dessine le plateau de jeu dans la fenetre.
-void paint (maze_t * maze);
-// Gere les pressions de touche clavier, et divers evenements.
-int getEvent ();
-// Met à jour la position du joueur.
-void updatePaint (maze_t * maze);
-// Initialise la fenetre de jeu. w et h sont la largeur et la hauteur du plateau de jeu, en nombre de tuiles...
-void initWindow (int w, int h);
 
+// Affiche tout le plateau de jeu.
+void paint (maze_t * maze);
+
+// Capture les evenements clavier/fenetre.
+int getEvent (maze_t * maze);
+
+// Met à jour la position du joueur.
+void updatePlayer (maze_t * maze, int stepByStep);
+
+// Met à jour les bombes et les explosions.
+void updateBomb (maze_t * maze);
+
+// Explosion d'une bombe.
+void explosion (maze_t * maze, int numTile);
+
+// Ouvre une fenêtre avec de taille wxh tuiles de plateau de jeu.
+void initWindow (int w, int h);
