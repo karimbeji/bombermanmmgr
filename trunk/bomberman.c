@@ -18,9 +18,9 @@ int main (int argc, char * argv[])
 	
 	while (!finished)
 	{
-		finished = getEvent (maze);	// Récupération des évènements.
-		updatePlayer(maze, 0);						// Mise à jour des joueurs.
+		finished = getEvent (maze);					// Récupération des évènements.
 		updateBomb(maze);							// Mise à jour des bombes.
+		updatePlayer(maze, 0);						// Mise à jour des joueurs.
 		SDL_Delay (150);							// Ralentissmeent.
 		paint (maze);								// Mise à jour des cases.
 		nbPlayerAlive = lastPlayer();				// Vérifie que les joueurs soit vivant
@@ -35,11 +35,6 @@ int main (int argc, char * argv[])
 				}
 			}
 			printf("^_^ Le jouer %d vient de gagner la partie !!! ^_^\n", i); // Affichage du vainqueur.
-			endGame = 1;
-		}
-		else if (endGame == 0 && nbPlayerAlive == 0)
-		{
-			printf("^_^ Tout le monde a perdu !!! ^_^\n");
 			endGame = 1;
 		}
 	}
