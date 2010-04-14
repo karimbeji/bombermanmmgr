@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "maze.h"
+#include "time.h"
 
 /* Charge un fichier dont on donne le nom et retourne une structure
 maze_t correspondant au plateau de jeu. Le fichier doit
@@ -43,9 +44,6 @@ maze_t * loadMaze (char * filename)
 			// Par défaut.
 			maze->t[i * maze->h + j].bonus = 0;
 
-			// Génération du bonus.
-			bonus = generateBonus (3); // 33% de chance d'avoir un bonus...
-
 			switch (buffer[j])
 			{
 				default:
@@ -55,6 +53,9 @@ maze_t * loadMaze (char * filename)
 				case '+':
 					maze->t[i * maze->h + j].type = T_SOFTWALL;
 					
+					// Génération du bonus.
+					bonus = generateBonus (3); // 33% de chance d'avoir un bonus...
+
 					if (bonus == 0) // On génèreles bonus.
 					{
 						maze->t[i * maze->h + j].bonus = 1;
@@ -135,6 +136,9 @@ int checkTileOK (enum tile_e nextCase)
 // Génération aléatoire des bombes sous les murs destructibles...
 int generateBonus (int lucky)
 {
+	static int j = 69; // Chiffre qui initialise la fonction random...
+	srand ((time (NULL) * j++)); // Petite cuisine aléatoire !
+
 	return (rand() % lucky);
 }
 

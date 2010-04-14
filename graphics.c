@@ -305,7 +305,7 @@ void updateBomb (maze_t * maze)
 	{
 		if (maze->t[varPlace].type == T_EXPLOSION)
 		{
-			if (maze->t[varPlace].timer == 1)
+			if (maze->t[varPlace].timer >= 1)
 			{
 				if (maze->t[varPlace].bonus == 1)
 				{
@@ -330,27 +330,35 @@ void updateBomb (maze_t * maze)
 // Explosion d'une bombe.
 void explosion (maze_t * maze, int numTile)
 {
-	int arrayStop[4], i; // Tableau stopant l'explosion pour un mur indestructible, varaible de boucle.
+	int arrayStop[4], i, temp; // Tableau stopant l'explosion pour un mur indestructible, varaible de boucle.
 	
 	// Initialisation du tableau qui permettra de connaître les limites de l'explosion.
 	arrayStop[0] = arrayStop[1] = arrayStop[2] = arrayStop[3] = 0;
 
 	// Explosion de la case contenant la bombe.
 	maze->t[numTile].type = T_EXPLOSION;
+	maze->t[numTile].timer = 0;
 
 	for (i = 1; i <= maze->t[numTile].power; i++) // En fonction de la puissance du joueur.
 	{		
 		// Top
 		if ((maze->w * i) <= numTile && arrayStop[0] == 0)
 		{
-			switch (maze->t[numTile - maze->w * i].type)
+			temp = numTile - maze->w * i;
+
+			switch (maze->t[temp].type)
 			{
 				case T_HARDWALL:
 					arrayStop[0] = 1;
 					break;
+				case T_EXPLOSION:
+				case T_BOMB:
+					explosion (maze, temp);
+					// arrayStop[0] = 1;
+					break;
 				default:
-					maze->t[numTile - maze->w * i].type = T_EXPLOSION;
-					maze->t[numTile - maze->w * i].timer = 0;
+					maze->t[temp].type = T_EXPLOSION;
+					maze->t[temp].timer = 0;
 					break;
 			}
 		}
@@ -358,14 +366,20 @@ void explosion (maze_t * maze, int numTile)
 		// Right
 		if ((numTile % maze->w) < (maze->w - i) && arrayStop[1] == 0)
 		{
-			switch (maze->t[numTile + i].type)
+			temp = numTile + i;
+
+			switch (maze->t[temp].type)
 			{
 				case T_HARDWALL:
 					arrayStop[1] = 1;
 					break;
+				case T_BOMB:
+					explosion (maze, temp);
+					// arrayStop[1] = 1;
+					break;
 				default:
-					maze->t[numTile + i].type = T_EXPLOSION;
-					maze->t[numTile + i].timer = 0;
+					maze->t[temp].type = T_EXPLOSION;
+					maze->t[temp].timer = 0;
 					break;
 			}
 		}
@@ -373,14 +387,20 @@ void explosion (maze_t * maze, int numTile)
 		// Bottom
 		if (numTile < (maze->w * (maze->h - i)) && arrayStop[2] == 0)
 		{
-			switch (maze->t[numTile + maze->w * i].type)
+			temp = numTile + maze->w * i;
+			
+			switch (maze->t[temp].type)
 			{
 				case T_HARDWALL:
 					arrayStop[2] = 1;
 					break;
+				case T_BOMB:
+					explosion (maze, temp);
+					// arrayStop[2] = 1;
+					break;
 				default:
-					maze->t[numTile + maze->w * i].type = T_EXPLOSION;
-					maze->t[numTile + maze->w * i].timer = 0;
+					maze->t[temp].type = T_EXPLOSION;
+					maze->t[temp].timer = 0;
 					break;
 			}
 		}
@@ -388,14 +408,20 @@ void explosion (maze_t * maze, int numTile)
 		// Left
 		if (i <= (numTile % maze->w) && arrayStop[3] == 0)
 		{
-			switch (maze->t[numTile - i].type)
+			temp = numTile - i;
+			
+			switch (maze->t[temp].type)
 			{
 				case T_HARDWALL:
 					arrayStop[3] = 1;
 					break;
+				case T_BOMB:
+					explosion (maze, temp);
+					// arrayStop[3] = 1;
+					break;
 				default:
-					maze->t[numTile - i].type = T_EXPLOSION;
-					maze->t[numTile - i].timer = 0;
+					maze->t[temp].type = T_EXPLOSION;
+					maze->t[temp].timer = 0;
 					break;
 			}
 		}
