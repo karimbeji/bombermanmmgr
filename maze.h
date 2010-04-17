@@ -18,16 +18,17 @@ typedef struct {
 
 // Définit le plateau de jeu.
 typedef struct {
-  int w,h;		// Largeur et Hauteur.
+  int w, h;		// Largeur et Hauteur.
   tile_t * t;	// Tile.
 } maze_t;
 
 enum direction_e {
 	STOP = 0, 	// Le joueur ne se déplace pas.
-	TOP,		// Le joueur va vers le haut.
-	BOTTOM,		// Le joueur va vers le bas.
+	UP,		// Le joueur va vers le haut.
+	RIGHT,		// Le joueur va vers la droite.
+	DOWN,		// Le joueur va vers le bas.
 	LEFT,		// Le joueur va vers la gauche.
-	RIGHT		// Le joueur va vers la droite.
+	MAX_STOP 	// Le joueur ne se déplace pas.
 };
 
 typedef struct {
@@ -38,28 +39,40 @@ typedef struct {
 	int y;						// Position vertical sur le plateau.
 } player_t;
 
-player_t * arrayPlayer; // Initialisation du tableau de joueur.
+typedef struct {
+	int test;	// Test.
+	int tile;	// Case.
+} explosion_s;
 
-/* Charge un fichier dont on donne le nom et retourne une structure
-maze_t correspondant au plateau de jeu. Le fichier doit
-correspondre au format donné par l'énoncé.
-Si le fichier ne peut pas être lu, retourne NULL. */
-maze_t * loadMaze (char * filename);
+// Initialisation du tableau de joueur.
+player_t * arrayPlayer;
 
+// Nombre de joeur;
+int nbPlayerDefault;
+
+// Vérifie que 2 joueurs ne se retrouvent pas sur la même case.
+int checkOtherPlayer(int numPlayer);
+// Vérifie que le type de la case soit autorisé.
+int checkTileOK (enum tile_e nextCase);
+// Explosion d'une bombe.
+void explosion (maze_t * maze, int numTile);
+// Génération aléatoire des bombes sous les murs destructibles.
+int generateBonus (int lucky);
+// Calcule la coordonnée linéaire à l'aide des coordonnées X et Y du plateau.
+int linearTile (maze_t * maze, int x, int y);
+// Charge le plateau de jeu à partir d'un fichier texte.
+void loadMaze (char * filename, maze_t * maze);
+// Déplacement du joueur.
+void movePlayer (maze_t * maze, int numPlayer);
+// Retourne le type de la prochaine case du joueur.
+int nextTileType (maze_t * maze, int numPlayer);
 // Désalloue le plateau de jeu.
 void unloadMaze (maze_t * maze);
-
-// Vérifie si un joueur n'est pas sur la case suivante.
-int checkOtherPlayer(int numPlayer, enum direction_e dir);
-
-// Vérifie si le type de la case convient à un déplacement.
-int checkTileOK (enum tile_e nextCase);
-
-// Génération aléatoire des bombes sous les murs destructibles...
-int generateBonus (int lucky);
-
-// Permet d'imprimer sur la sortie un peu de texte...
+// Met à jour les bombes.
+void updateBomb (maze_t * maze);
+// Met à jour les les explosions.
+void updateExplosion (maze_t * maze);
+// Permet d'afficher un peu de texte dans la console.
 void updateOutput (int player, int alive, int power);
-
-// Permet de connaître le nom du vainqueur.
-int lastPlayer ();
+// Met à jour la position du joueur.
+void updatePlayer (maze_t * maze, int stepByStep);

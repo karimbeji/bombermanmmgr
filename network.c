@@ -34,12 +34,12 @@ connection_t * initServer (size_t nclients, int port)
 
 	c->client = (int *) malloc (sizeof (int) * nclients);
 	c->nclients = nclients;
-	for (i = 0; i<nclients; i++)
+	for (i = 0; i < nclients; i++)
 	{
 		if ((c->client[i] = accept (c->server, 0, 0)) == -1)
 			ERROR("accept");
 		
-		write(c->client[i],&i,sizeof(int));
+		write(c->client[i], &i, sizeof(int));
 		printf("Connected.\n");
 	}
 	
@@ -85,7 +85,7 @@ void broadcastData (connection_t * connection, void * data, size_t size)
 	int i;
 	
 	for (i = 0; i<  connection->nclients; i++)
-		write(connection->client[i],data,size);
+		write(connection->client[i], data, size);
 }
 
 void * receiveData (connection_t * connection, void * data, size_t size)
