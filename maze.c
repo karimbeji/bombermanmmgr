@@ -128,11 +128,14 @@ int linearTile (maze_t * maze, int x, int y)
 // Charge le plateau de jeu à partir d'un fichier texte.
 void loadMaze (char * filename, maze_t * maze)
 {
-	char buffer[1024];
+	char buffer[1024], filename2[64];
 	int line, row, nbPlayer, tempTile, lucky;
 	
+	// Concatene le nom de fichier.
+	sprintf (filename2, "map/%s.txt", filename);
+	printf ("%s\n", filename2);
 	// Ouvre le fichier en lecture.
-	FILE * file = fopen (filename, "r");
+	FILE * file = fopen (filename2, "r");
 	
 	if (file == NULL) 
 	{
@@ -141,7 +144,7 @@ void loadMaze (char * filename, maze_t * maze)
 
 	// Lit les dimensions du plateau de jeu. w correspond au nombre de colonnes, h au nombre de lignes.
 	fscanf (file, "%d %d %d %d\n", &maze->w, &maze->h, &nbPlayerDefault, &lucky);
-	printf("Bombe : %d.\n", lucky);
+
 	// Alloue de l'espace pour le tableau de joueur.
 	arrayPlayer = malloc(sizeof(player_t) * nbPlayerDefault);
 
@@ -315,7 +318,7 @@ void updateOutput (int player, int alive, int power)
 		
 		if (i ==  nbPlayerDefault)
 		{
-			printf("La partie est terminee !\n", player, power);
+			printf("La partie est terminee !\n");
 		}
 	}
 	else if (power > 0)
