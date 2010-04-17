@@ -3,44 +3,55 @@
 #include <stdlib.h>
 #include "maze.h"
 #include "graphics.h"
+#include "network.h"
 
-// Fin du jeu.
-int endGame = 0;
+
 
 int main (int argc, char * argv[])
 {
-	int i, finished = 0, nbPlayerAlive = 4;
-	maze_t * maze;
+	int finished = 0, z;
+	// int i, finished = 0, nbPlayerAlive = 4;
+	// Initialisation et affectation du plateau de jeu.
+	maze_t * maze = (maze_t *) malloc (sizeof (maze_t));
 	
-	maze = loadMaze (argv[1]);		// Chargement du plateau du jeu.
-	initWindow (maze->w, maze->h);	// Fenêtre SDL.
-	loadTiles ();					// Chargement des cases du jeu.
+	// Initialisation de la connexion client.
+	// connection_t * socket = initClient ("127.0.0.1", 7000);
 	
+	// On reçoit la taille.
+	
+	// On charge la carte.
+	loadMaze (argv[1], maze);
+	// Affichage de la fenêtre SDL.
+	initWindow (maze->w, maze->h);
+	// Chargement des images du jeu.
+	loadTiles ();
+	
+	// Début du jeu.
 	while (!finished)
 	{
-		finished = getEvent (maze);					// Récupération des évènements.
-		updateBomb(maze);							// Mise à jour des bombes.
-		updatePlayer(maze, 0);						// Mise à jour des joueurs.
-		SDL_Delay (150);							// Ralentissmeent.
-		paint (maze);								// Mise à jour des cases.
-		nbPlayerAlive = lastPlayer();				// Vérifie que les joueurs soit vivant
-		
-		if (endGame == 0 && nbPlayerAlive == 1)
-		{
-			for (i = 0; i < 4; i++)
-			{
-				if (arrayPlayer[i].alive == 1)
-				{
-					break;
-				}
-			}
-			printf("^_^ Le jouer %d vient de gagner la partie !!! ^_^\n", i); // Affichage du vainqueur.
-			endGame = 1;
-		}
+	// 	receiveData (socket, maze, sizeof (tile_t) * maze->w * maze->h);	// On reçoit la map.
+	// 	receiveData (socket, arrayPlayer, sizeof(player_t) * 4);			// On reçoit les joueurs.
+		// Récupération des évènements.
+		getEvent (maze, &finished);
+		// Mise à jour de la position des joueurs.
+		updatePlayer(maze, 0);
+		// Mise à jour des explosions.
+		updateExplosion(maze);
+		// Mise à jour des bombes.
+		updateBomb(maze);
+		// On ralentit un peu le jeu.
+		SDL_Delay (175);
+		// Mise à jour des cases.
+		paint (maze);
+	// 	broadcastData (socket, maze, sizeof (tile_t) * maze->w * maze->h);	// On envoie la map.
+	// 	broadcastData (socket, arrayPlayer, sizeof(player_t) * 4);			// On envoie les joueurs.
 	}
 	
-	unloadMaze (maze);				// Libération de la mémoire.
+	// Fermeture socket.
+	// closeClient (socket);
+	
+	// Libération de la mémoire.
+	unloadMaze (maze);
 
 	return 0;
 }
-
