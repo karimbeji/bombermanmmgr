@@ -343,7 +343,6 @@ void updatePlayer (maze_t * maze, int stepByStep)
 			if (maze->t[tilePlayer].type == T_EXPLOSION) // Permet de tuer un joueur.
 			{
 				arrayPlayer[iPlayer].alive = 0;
-				printf("Je meurs %d\n", iPlayer);
 			}
 			else if (maze->t[tilePlayer].type == T_BONUS) // permet de ramasser des bonus.
 			{
