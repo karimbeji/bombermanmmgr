@@ -73,6 +73,6 @@ void updateBomb (maze_t * maze);
 // Met à jour les les explosions.
 void updateExplosion (maze_t * maze);
 // Permet d'afficher un peu de texte dans la console.
-void updateOutput (int player, int alive, int power);
+void updateOutput (int * endGame);
 // Met à jour la position du joueur.
 void updatePlayer (maze_t * maze, int stepByStep);

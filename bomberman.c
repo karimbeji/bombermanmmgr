@@ -10,13 +10,12 @@ int main (int argc, char * argv[])
 	// Pour éviter les segmentation fault.
 	if (argc > 1)
 	{
-		int finished = 0;
+		int finished, weHaveOneWinner;
 
+		finished = weHaveOneWinner = 0;
+		
 		// Initialisation et affectation du plateau de jeu.
 		maze_t * maze = (maze_t *) malloc (sizeof (maze_t));
-	
-		// Initialisation de la connexion client.
-		// connection_t * socket = initClient ("127.0.0.1", 7000);
 	
 		// On charge la carte.
 		loadMaze (argv[1], maze);
@@ -28,12 +27,10 @@ int main (int argc, char * argv[])
 		// Début du jeu.
 		while (!finished)
 		{
-		// 	receiveData (socket, maze, sizeof (tile_t) * maze->w * maze->h);	// On reçoit la map.
-		// 	receiveData (socket, arrayPlayer, sizeof(player_t) * 4);			// On reçoit les joueurs.
 			// Récupération des évènements.
 			getEvent (maze, &finished);
 			// Mise à jour de la position des joueurs.
-			updatePlayer (maze, 0);
+			updatePlayer (maze, 1);
 			// Mise à jour des explosions.
 			updateExplosion (maze);
 			// Mise à jour des bombes.
@@ -42,18 +39,15 @@ int main (int argc, char * argv[])
 			SDL_Delay (175);
 			// Mise à jour des cases.
 			paint (maze);
-		// 	broadcastData (socket, maze, sizeof (tile_t) * maze->w * maze->h);	// On envoie la map.
-		// 	broadcastData (socket, arrayPlayer, sizeof(player_t) * 4);			// On envoie les joueurs.
+			// on vérifie que la partie n'est pas terminée.
+			updateOutput (&weHaveOneWinner);
 		}
-	
-		// Fermeture socket.
-		// closeClient (socket);
 	
 		// Libération de la mémoire.
 		unloadMaze (maze);
 	}
 	else
-		printf ("Veuillez renseigner un plateau de jeu.\n./bomberman maze.txt\n");
+		printf ("Veuillez renseigner un plateau de jeu.\n./bomberman maze\n");
 
 	return 0;
 }
