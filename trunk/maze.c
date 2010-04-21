@@ -61,7 +61,6 @@ void explosion (maze_t * maze, int numTile)
 		if (linearTile (maze, arrayPlayer[iPlayer].x, arrayPlayer[iPlayer].y) == numTile)
 		{
 			arrayPlayer[iPlayer].alive = 0;
-			updateOutput (iPlayer, 0, arrayPlayer[iPlayer].powerBomb);
 		}
 	}
 
@@ -100,7 +99,6 @@ void explosion (maze_t * maze, int numTile)
 							if (linearTile (maze, arrayPlayer[iPlayer].x, arrayPlayer[iPlayer].y) == arrayExplosion[iDirection].tile)
 							{
 								arrayPlayer[iPlayer].alive = 0;
-								updateOutput (iPlayer, 0, arrayPlayer[iPlayer].powerBomb);
 							}
 						}
 						break;
@@ -307,22 +305,24 @@ void updateExplosion (maze_t * maze)
 }
 
 // Permet d'afficher un peu de texte dans la console.
-void updateOutput (int player, int alive, int power)
+void updateOutput (int * endGame)
 {
-	static int i = 1;
-
-	if (alive == 0)
+	if ((*endGame) == 0)
 	{
-		printf("Le joueur %d vient de mourir avec une puissance de %d !\n", player, power);
-		i++;
-		
-		if (i ==  nbPlayerDefault)
+		int iPlayer, nbPlayerAlive , playerWinner;
+
+		for (iPlayer = 0, nbPlayerAlive = 0; iPlayer < nbPlayerDefault; iPlayer++)
 		{
-			printf("La partie est terminee !\n");
+			nbPlayerAlive += arrayPlayer[iPlayer].alive;
+			playerWinner = iPlayer;
+		}
+
+		if (nbPlayerAlive == 1)
+		{
+			printf ("\n^_^   ^_-   Le joueur %d a gagne la partie !   -_^   ^_^\n\n", playerWinner);
+			(*endGame) = 1;
 		}
 	}
-	else if (power > 0)
-		printf("Le joueur %d vient d'augmenter sa puissance a %d !\n", player, power);
 }
 
 // Met à jour la position du joueur.
@@ -343,15 +343,12 @@ void updatePlayer (maze_t * maze, int stepByStep)
 			if (maze->t[tilePlayer].type == T_EXPLOSION) // Permet de tuer un joueur.
 			{
 				arrayPlayer[iPlayer].alive = 0;
-
-				updateOutput (iPlayer, 0, arrayPlayer[iPlayer].powerBomb);
+				printf("Je meurs %d\n", iPlayer);
 			}
 			else if (maze->t[tilePlayer].type == T_BONUS) // permet de ramasser des bonus.
 			{
 				arrayPlayer[iPlayer].powerBomb += 1;
 				maze->t[tilePlayer].type = T_EMPTY;
-
-				updateOutput (iPlayer, 1, arrayPlayer[iPlayer].powerBomb);
 			}
 	
 	 		// Permet de faire du pas à pas.

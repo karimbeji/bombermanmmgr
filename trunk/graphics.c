@@ -48,7 +48,7 @@ const char * tilenames[]= {
 void getEvent (maze_t * maze, int * finished)
 {
 	SDL_Event event;
-	int id = 0;
+	int id = 0; // Introduit pour le réseaux.
 
 	// Ecoute les événements qui sont arrivés.
 	while (SDL_PollEvent (&event))
@@ -69,12 +69,14 @@ void getEvent (maze_t * maze, int * finished)
  				case SDLK_ESCAPE:
 					(* finished) = 1;
 					break;
+				// Joueur 0.
 				case SDLK_SPACE:
 					if (arrayPlayer[id].alive == 1)
 					{
 						maze->t[arrayPlayer[id].y * maze->w + arrayPlayer[id].x].type = T_BOMB;
 						maze->t[arrayPlayer[id].y * maze->w + arrayPlayer[id].x].power = arrayPlayer[id].powerBomb;
-						maze->t[arrayPlayer[id].y * maze->w + arrayPlayer[id].x].timer = TIMER_BOMB;
+						maze->t[arrayPlayer[id].y * maze->w + arrayPlayer[id].x].timer = (arrayPlayer[id].powerBomb >= TIMER_BOMB ? arrayPlayer[id].powerBomb +  2 : TIMER_BOMB);
+						// Pour pouvoir échapper à ses bombes...
 					}
 					break;
 				case SDLK_LEFT:
@@ -88,6 +90,28 @@ void getEvent (maze_t * maze, int * finished)
 					break;
 				case SDLK_DOWN:
 					arrayPlayer[id].direction = DOWN;
+					break;
+				// Joueur 1.
+				case SDLK_f:
+					if (arrayPlayer[1].alive == 1)
+					{
+						maze->t[arrayPlayer[1].y * maze->w + arrayPlayer[1].x].type = T_BOMB;
+						maze->t[arrayPlayer[1].y * maze->w + arrayPlayer[1].x].power = arrayPlayer[1].powerBomb;
+						maze->t[arrayPlayer[1].y * maze->w + arrayPlayer[1].x].timer = (arrayPlayer[1].powerBomb >= TIMER_BOMB ? arrayPlayer[1].powerBomb +  2 : TIMER_BOMB);
+						// Pour pouvoir échapper à ses bombes...
+					}
+					break;
+				case SDLK_q:
+					arrayPlayer[1].direction = LEFT;
+					break;
+				case SDLK_d:
+					arrayPlayer[1].direction = RIGHT;
+					break;
+				case SDLK_z:
+					arrayPlayer[1].direction = UP;
+					break;
+				case SDLK_s:
+					arrayPlayer[1].direction = DOWN;
 					break;
 				default: ;
 			}
@@ -113,6 +137,8 @@ void initWindow (int w, int h)
 		fprintf (stderr, "error video mode: %s\n", SDL_GetError ());
 		exit (1);
 	}
+	
+	SDL_EnableKeyRepeat(25, 25);
 }
 
 // Charge les différentes images du jeu...
